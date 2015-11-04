@@ -6,10 +6,12 @@
 
 // Number of floors in the building.
 int numFloors = 0;
+// Number of elevators in the building.
+int numElevators = 0;
+// Number of simulations the user requests.
+int numSimulations = 0;
 
-using std::cin;
-using std::cout;
-using std::endl;
+using namespace std;
 
 enum Direction
   {
@@ -42,92 +44,48 @@ int currentFloor()
     }
 }
 
-// From your current floor, what direction are you going?
-int currentDirection( int floorCall )
-{
-  std::string temp = "";
-  int directionCall = 0;
-  cout << "What direction are you going? (up/down) ";
-  cin >> temp;
-  if( toupper( temp[0] ) == 'U' )
-    {
-      if( floorCall < numFloors )
-	{
-	  return directionCall = 1; // UP
-	}
-      if( floorCall == numFloors )
-	{
-	  cout << "Can't go higher. You are going DOWN." << endl;
-	  return directionCall = 2; // DOWN
-	}
-    }
-  if( toupper( temp[0] ) == 'D' )
-    {
-      if( floorCall > 1 )
-	{
-	  return directionCall = 2; // DOWN
-	}
-      if( floorCall == 1 )
-	{
-	  cout << "Can't go lower. You are going UP." << endl;
-	  return directionCall = 1; // UP
-	}
-    }
-  else
-    {
-      cout << "Please enter a valid direction." << endl;
-      return currentDirection( floorCall ); // ERROR
-    }
-}
-
-// From your floor and direction, which floor would you like to go to?
+// From your floor, which floor would you like to go to?
 int currentDesired()
 {
   int desiredCall = 0;
   cout << "What floor would you like to go to? ";
   cin >> desiredCall;
-  if( elevator.direction == 1 )
+  if( desiredCall == elevator.currentFloor )
     {
-    if( desiredCall > elevator.currentFloor )
-      {
+      elevator.direction = 0;
+      return desiredCall;
+    }
+  if( desiredCall > elevator.currentFloor )
+    {
       if( desiredCall < numFloors+1 )
 	{
+	  elevator.direction = 1;
 	  return desiredCall;
 	}
       if( desiredCall > numFloors )
 	{
+	  elevator.direction = 0;
 	  cout << "Please enter a valid floor." << endl;
 	  return currentDesired(); // ERROR
 	}
-      }
-    if( desiredCall <= elevator.currentFloor )
-      {
-	cout << "Please enter a floor above you." << endl;
-	return currentDesired(); // ERROR
-      }
     }
-  if( elevator.direction == 2 )
+  if( desiredCall < elevator.currentFloor )
     {
-      if( desiredCall < elevator.currentFloor )
+      if( desiredCall > 0 )
 	{
-	  if( desiredCall > 0 )
-	    {
-	      return desiredCall;
-	    }
-	  if( desiredCall < 1 )
-	    {
-	      cout << "Please enter a valid floor." << endl;
-	      return currentDesired(); // ERROR
-	    }
+	  elevator.direction = 2;
+	  return desiredCall;
 	}
-      if( desiredCall >= elevator.currentFloor )
+      if( desiredCall < 1 )
 	{
-	  cout << "Please enter a floor below you." << endl;
+	  elevator.direction = 0;
+	  cout << "Please enter a valid floor." << endl;
 	  return currentDesired(); // ERROR
 	}
-    }  
+    }
   else
     {
+      elevator.direction = 0;
       cout << "How the Hell did you get here?" << endl;
       return currentDesired(); // ERROR
     }
@@ -135,22 +93,18 @@ int currentDesired()
 
 int main()
 {
+  cout << "\n";
   cout << "How many floors? ";
   cin >> numFloors;
 
-  // What floors have called the elevator?
-  // What floors do we want to go to?
-  bool floors[numFloors];
+  bool floors[numFloors]; // Floors to visit.
 
-  // Can only handle one elevator for now.
-  int numElevators = 0;
   cout << "How many elevators? ";
   cin >> numElevators;
-  int elevators[numElevators];
+  int elevators[numElevators]; // Elevators we have.
 
-  int tests = 0;
-  cout << "How many tests would you like to perform? ";
-  cin >> tests;
+  cout << "How many simulations? ";
+  cin >> numSimulations;
 
   cout << "BEGINNING SIMULATION" << endl;
   sleep( 1 );
@@ -158,72 +112,67 @@ int main()
   sleep( 1 );
   cout << '.' << endl;
   sleep( 1 );
-  cout << '.' << "\n";
+  cout << '.' << endl;
 
   // Default elevator position is floor 1.
   elevator.currentFloor = 1;
 
-  // For as many tests as you like.
-  for( int i = 0; i < tests; i++ )
+  for( int i = 0; i < numSimulations; i++ )
     {
       cout << "Elevator beginning at floor " << elevator.currentFloor << '.' << endl;
 
-      // What floor are you on?
-      int floorCall = currentFloor();
+      // What floor are you calling the elevator from?
+      elevator.destinationFloor = currentFloor();
+      // Add this value to floors[].
 
-      // Elevator wants to go to where the floorCall came from.
-      elevator.destinationFloor = floorCall;
-
-      // What direction are you going? (U/D)
-      int directionCall = currentDirection( floorCall );
-
-      cout << "Elevator moving from floor " << elevator.currentFloor << " to floor " << elevator.destinationFloor << '.' << endl;
-
-      sleep( 1 );
-
-      // Elevator is now where floorCall came from.
-      elevator.currentFloor = elevator.destinationFloor; 
-
-      cout << "Elevator is now on floor " << elevator.currentFloor << '.' << endl;
-      
-      if( directionCall == 1 )
-	{
-	  cout << "Elevator will go UP from floor " << elevator.currentFloor << '.' << endl;
-	  elevator.direction = 1;
-	  sleep( 1 );
-	}
-      if( directionCall == 2 )
-	{
-	  cout << "Elevator will go DOWN from floor " << elevator.currentFloor << '.' << endl;
-	  elevator.direction = 2;
-	  sleep( 1 );
-	}
-
-      // What floor would you like to go to?      
-      int desiredCall = currentDesired();
-
-      // Elevator wants to go where the new passenger has requested.
-      elevator.destinationFloor = desiredCall;
-      
-      cout << "Elevator moving from floor " << elevator.currentFloor << " to floor " << elevator.destinationFloor << '.' << endl;
-
-      sleep( 1 );
-
-      // Elevator is now where desiredCall is.
-      elevator.currentFloor = elevator.destinationFloor;
-
-      cout << "Elevator is now on floor " << elevator.currentFloor << '.' << endl;
-      
-      // Elevator is no longer moving.
-      elevator.direction = 0;
-
-      sleep( 1 );
-
-      cout << "END TEST NUMER " << i+1 << '.' << endl;
-      cout << "\n";
-      
-      sleep( 1 );
-    }
+      // If there are floors[] to visit between currentFloor and destinaitonFloor,
+      // then stop at those floors. Assuming they are going the same direction.
      
+      if( elevator.destinationFloor != elevator.currentFloor )
+	{
+	  sleep( 1 ); // Elevator moving.
+	  
+	  // Elevator is now where currentFloor came from.
+	  elevator.currentFloor = elevator.destinationFloor; 
+	  // Remove this value from floors[].
+	  
+	  cout << "Elevator is now on floor " << elevator.currentFloor << '.' << endl;
+	}
+      
+      // What floor would you like to go to?      
+      elevator.destinationFloor = currentDesired();
+      // Add this value to floor[].
+
+      if( elevator.currentFloor != elevator.destinationFloor )
+	{
+	  if( elevator.direction == 1 ) // UP
+	    {
+	      cout << "Elevator going up from floor " << elevator.currentFloor << " to floor " << elevator.destinationFloor << '.' << endl;
+	    }
+	  if( elevator.direction == 2 ) // DOWN
+	    {
+	      cout << "Elevator moving down from floor " << elevator.currentFloor << " to floor " << elevator.destinationFloor << '.' << endl;
+	    }
+
+	  sleep( 1 ); // Elevator moving.
+
+	  // Elevator is now where currentDesired came from.
+	  elevator.currentFloor = elevator.destinationFloor;
+	  // Remove this value from floors[].
+
+	  cout << "Elevator is now on floor " << elevator.currentFloor << '.' << endl;
+	}
+
+      else
+	{
+	  cout << "You're already on floor " << elevator.currentFloor << " genius!" << endl;
+	}
+
+      cout << "END SIMULATION " << i+1 << '.' << endl;
+      sleep( 1 );
+      cout << "\n";
+    } 
+  cout << "Thanks for playing!" << endl;    
+  cout << "\n";
   return 0;
 }
